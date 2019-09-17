@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var context: MainActivity
     private lateinit var connectionStatus: TextView
     private val queue = ConcurrentLinkedQueue<String>()
+    private val sensors = ArrayList<Sensor>()
     fun toast(s:String){
         Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
     }
@@ -81,16 +82,18 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_main)
         connectionStatus = findViewById(R.id.ConnectionStatus)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val deviceSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
-        for (sensor in deviceSensors)
-        {
-            var sensorCheckBox = CheckBox(this);
-
-            sensorCheckBox.text = sensor.name+" " +sensor.resolution+" " +sensor.minDelay;
-            checkBoxLayout.addView(sensorCheckBox)
-        }
+//        val deviceSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
+//        for (sensor in deviceSensors)
+//        {
+//            var sensorCheckBox = CheckBox(this);
+//
+//            sensorCheckBox.text = sensor.name+" " +sensor.resolution+" " +sensor.minDelay;
+//            checkBoxLayout.addView(sensorCheckBox)
+//        }
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        sensors.add(accelerometer);
+        sensors.add(gyro);
         context = this
         Log.i("Main","On create");
         Thread {
@@ -147,11 +150,5 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             } while(true);
 
             }.start();
-
-//        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
-//        val deviceList: HashMap<String, UsbDevice> = manager.deviceList
-//        deviceList.values.forEach { device ->
-//            //your code
-//        }
     }
 }
