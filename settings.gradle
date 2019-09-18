@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name='Sensors test'
+rootProject.name='Android Sensors Data to PC'

@@ -5,8 +5,9 @@ This project send the sensor data from your phone to PC using a USB connection a
 
 ## Prerequisites
 
-Android >=5.0
-USB Debugging turned on
+- Android Studio 3.5
+- Android >=5.0
+- USB Debugging turned on
 
 ## Usage
 

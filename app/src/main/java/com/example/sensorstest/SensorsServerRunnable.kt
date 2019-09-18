@@ -12,6 +12,7 @@ import java.net.Socket
 
 class SensorsServerRunnable:  Runnable{
     internal var activity: MainActivity
+    internal lateinit var serverSocket: ServerSocket
     private var port: Int
     constructor(activity: MainActivity, port: Int) {
         this.activity = activity
@@ -24,9 +25,9 @@ class SensorsServerRunnable:  Runnable{
             activity.connectionStatus.text = "Waiting for connection"
         })
 
-        var serverSocket = ServerSocket(port)
+        serverSocket = ServerSocket(port)
         //            serverSocket.soTimeout = 10000;
-        lateinit var clientSocket: Socket
+        var clientSocket: Socket?  = null
         do {
             try {
                 clientSocket = serverSocket.accept()
@@ -62,6 +63,9 @@ class SensorsServerRunnable:  Runnable{
                 } while (!Thread.interrupted())
             }catch (e: Exception) {
                 when (e) {
+                    is InterruptedException -> {
+                        Log.i("Server", "Interrupted");
+                    }
                     is InterruptedIOException -> {
                         activity.runOnUiThread(Runnable {
                             Toast.makeText(activity, "timeout reached", Toast.LENGTH_SHORT).show()
@@ -73,14 +77,21 @@ class SensorsServerRunnable:  Runnable{
                         activity.runOnUiThread(Runnable {
                             Toast.makeText(activity, "timeout reached", Toast.LENGTH_SHORT).show()
                             Log.i("Server", "timeout reached")
-                            activity.connectionStatus.text = "Error while sending data\nReconnecting..."
+                            activity.connectionStatus.text = "Error while sending data (Is the client up?). Reconnecting..."
 
                         })
                     }
+
                 }
+                Log.i("Server", e.message)
+
             }
         } while (!Thread.interrupted())
         serverSocket.close()
-        clientSocket.close()
+        clientSocket?.close()
+    }
+
+    public fun stop() {
+        serverSocket.close()
     }
 }

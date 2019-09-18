@@ -10,10 +10,8 @@ import android.hardware.usb.UsbManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.TextView
-import android.widget.Toast
+import android.view.View
+import android.widget.*
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import java.io.InterruptedIOException
@@ -31,6 +29,7 @@ import kotlin.collections.ArrayList
 class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var gyro: Sensor
     lateinit var sensorManager: SensorManager
+    lateinit var sensorsScrollView: ScrollView
     private lateinit var accelerometer: Sensor;
     private lateinit var serverSocket: ServerSocket
     private lateinit var clientSocket: Socket
@@ -38,6 +37,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     public lateinit var connectionStatus: TextView
     public val sensorCheckBoxes = ArrayList<Pair<CheckBox, Sensor>>()
     lateinit var monitorThread: Thread
+    lateinit var monitorThreadRunnable: SensorsServerRunnable
     val queue = ConcurrentLinkedQueue<String>()
     private val sensors = ArrayList<Sensor>()
     fun toast(s:String){
@@ -77,6 +77,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         setContentView(R.layout.activity_main)
         connectionStatus = findViewById(R.id.ConnectionStatus)
+        sensorsScrollView = findViewById(R.id.sensorsScrollView)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val deviceSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
         for (sensor in deviceSensors)
@@ -85,20 +86,25 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 continue;
             var sensorCheckBox = CheckBox(this);
             sensorCheckBoxes.add(Pair(sensorCheckBox, sensor));
-            sensorCheckBox.text = sensor.name+" " +sensor.resolution+" " +sensor.minDelay;
-            checkBoxLayout.addView(sensorCheckBox)
-        }
+            sensorCheckBox.text = sensor.name;
+                checkBoxLayout.addView(sensorCheckBox)
+            }
 
-        var button = findViewById<Button>(R.id.monitorButton);
-        button.setOnClickListener( {
-            if (button.text.contains("Start", true))
-            {
-                button.text = "Stop monitoring";
-                monitorThread = Thread(SensorsServerRunnable(this, 65000))
-                monitorThread.start()
+            var button = findViewById<Button>(R.id.monitorButton);
+            button.setOnClickListener( {
+                if (button.text.contains("Start", true))
+                {
+                    button.text = "Stop monitoring";
+                    sensorsScrollView.visibility = View.INVISIBLE;
+                    monitorThreadRunnable = SensorsServerRunnable(this, 65000)
+                    monitorThread = Thread(monitorThreadRunnable)
+                    monitorThread.start()
             } else
             {
                 button.text = "Start monitoring"
+                connectionStatus.text = "Choose sensors to monitor:"
+                sensorsScrollView.visibility = View.VISIBLE;
+                monitorThreadRunnable.stop()
                 monitorThread.interrupt();
             }
 
